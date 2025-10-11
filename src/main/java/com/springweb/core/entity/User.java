@@ -28,7 +28,7 @@ public class User {
     @Column(name = "userId", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "roleId", nullable = false)
     private Role role;
 

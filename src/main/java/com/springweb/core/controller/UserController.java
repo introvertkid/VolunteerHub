@@ -31,4 +31,9 @@ class UserController {
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
+
+    @GetMapping("/test")
+    public String test() {
+        return "Application is running on localhost!";
+    }
 }
