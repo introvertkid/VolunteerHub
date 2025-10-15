@@ -17,35 +17,35 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "users", schema = "spring_boot_db", indexes = {
-        @Index(name = "roleId", columnList = "roleId")
+        @Index(name = "role_id", columnList = "role_id")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "email", columnNames = {"email"}),
-        @UniqueConstraint(name = "phoneNumber", columnNames = {"phoneNumber"})
+        @UniqueConstraint(name = "phone_number", columnNames = {"phone_number"})
 })
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userId", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "roleId", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
-    @Column(name = "fullName", nullable = false)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column(name = "email", nullable = false, length = 100)
     private String email;
 
-    @Column(name = "phoneNumber", length = 20)
+    @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
     @Column(name = "password", nullable = false)
     private String password;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdAt")
+    @Column(name = "created_at")
     private Instant createdAt;
 
     public Integer getId() {

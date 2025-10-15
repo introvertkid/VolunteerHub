@@ -13,8 +13,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "post_likes", schema = "spring_boot_db", indexes = {
-        @Index(name = "userId", columnList = "userId"),
-        @Index(name = "postId", columnList = "postId")
+        @Index(name = "user_id", columnList = "user_id"),
+        @Index(name = "post_id", columnList = "post_id")
 })
 public class PostLike {
     @Id
@@ -23,11 +23,11 @@ public class PostLike {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postId")
+    @JoinColumn(name = "post_id")
     private Post post;
 
     public Integer getId() {

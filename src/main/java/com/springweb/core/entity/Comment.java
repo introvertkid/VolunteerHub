@@ -17,21 +17,21 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "comments", schema = "spring_boot_db", indexes = {
-        @Index(name = "postId", columnList = "postId"),
-        @Index(name = "commentedBy", columnList = "commentedBy")
+        @Index(name = "post_id", columnList = "post_id"),
+        @Index(name = "commented_by", columnList = "commented_by")
 })
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "commentId", nullable = false)
+    @Column(name = "comment_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postId")
+    @JoinColumn(name = "post_id")
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "commentedBy")
+    @JoinColumn(name = "commented_by")
     private User commentedBy;
 
     @Lob
@@ -39,7 +39,7 @@ public class Comment {
     private String content;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdAt")
+    @Column(name = "created_at")
     private Instant createdAt;
 
     public Integer getId() {

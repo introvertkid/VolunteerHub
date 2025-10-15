@@ -13,8 +13,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "event_likes", schema = "spring_boot_db", indexes = {
-        @Index(name = "userId", columnList = "userId"),
-        @Index(name = "eventId", columnList = "eventId")
+        @Index(name = "user_id", columnList = "user_id"),
+        @Index(name = "event_id", columnList = "event_id")
 })
 public class EventLike {
     @Id
@@ -23,11 +23,11 @@ public class EventLike {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "eventId")
+    @JoinColumn(name = "event_id")
     private Event event;
 
     public Integer getId() {

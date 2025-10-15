@@ -17,16 +17,16 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "notifications", schema = "spring_boot_db", indexes = {
-        @Index(name = "userId", columnList = "userId")
+        @Index(name = "user_id", columnList = "user_id")
 })
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "notificationId", nullable = false)
+    @Column(name = "notification_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Lob
@@ -34,11 +34,11 @@ public class Notification {
     private String message;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdAt")
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @ColumnDefault("0")
-    @Column(name = "isRead")
+    @Column(name = "is_read")
     private Boolean isRead;
 
     public Integer getId() {

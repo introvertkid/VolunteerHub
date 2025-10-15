@@ -16,13 +16,13 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "events", schema = "spring_boot_db", indexes = {
-        @Index(name = "categoryId", columnList = "categoryId"),
-        @Index(name = "createdBy", columnList = "createdBy")
+        @Index(name = "category_id", columnList = "category_id"),
+        @Index(name = "created_by", columnList = "created_by")
 })
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "eventId", nullable = false)
+    @Column(name = "event_id", nullable = false)
     private Integer id;
 
     @Column(name = "title", nullable = false)
@@ -33,7 +33,7 @@ public class Event {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoryId")
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @Column(name = "address", nullable = false)
@@ -48,14 +48,14 @@ public class Event {
     @Column(name = "ward", length = 100)
     private String ward;
 
-    @Column(name = "startAt")
+    @Column(name = "start_at")
     private Instant startAt;
 
-    @Column(name = "endAt")
+    @Column(name = "end_at")
     private Instant endAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "createdBy", nullable = false)
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     public Integer getId() {

@@ -16,36 +16,36 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "event_registrations", schema = "spring_boot_db", indexes = {
-        @Index(name = "userId", columnList = "userId"),
-        @Index(name = "eventId", columnList = "eventId"),
-        @Index(name = "approvedBy", columnList = "approvedBy")
+        @Index(name = "user_id", columnList = "user_id"),
+        @Index(name = "event_id", columnList = "event_id"),
+        @Index(name = "approved_by", columnList = "approved_by")
 })
 public class EventRegistration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "registrationId", nullable = false)
+    @Column(name = "registration_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "eventId")
+    @JoinColumn(name = "event_id")
     private Event event;
 
     @Column(name = "status", length = 20)
     private String status;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "registrationDate")
+    @Column(name = "registration_date")
     private Instant registrationDate;
 
-    @Column(name = "cancelAt")
+    @Column(name = "cancel_at")
     private Instant cancelAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approvedBy")
+    @JoinColumn(name = "approved_by")
     private User approvedBy;
 
     public Integer getId() {

@@ -14,26 +14,26 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 @Entity
-@Table(name = "refreshtokenblacklist", schema = "spring_boot_db", indexes = {
-        @Index(name = "userId", columnList = "userId")
+@Table(name = "refresh_token_blacklist", schema = "spring_boot_db", indexes = {
+        @Index(name = "user_id", columnList = "user_id")
 })
-public class Refreshtokenblacklist {
+public class RefreshTokenBlacklist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "refreshTokenId", nullable = false)
+    @Column(name = "refresh_token_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(name = "jti")
     private String jti;
 
-    @Column(name = "createdAt")
+    @Column(name = "created_at")
     private Instant createdAt;
 
-    @Column(name = "expiresAt")
+    @Column(name = "expires_at")
     private Instant expiresAt;
 
     public Integer getId() {
