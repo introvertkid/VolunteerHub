@@ -7,7 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "categories", schema = "spring_boot_db", uniqueConstraints = {
         @UniqueConstraint(name = "category_name", columnNames = {"category_name"})
@@ -20,21 +24,5 @@ public class Category {
 
     @Column(name = "category_name", nullable = false, length = 100)
     private String categoryName;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
 
 }

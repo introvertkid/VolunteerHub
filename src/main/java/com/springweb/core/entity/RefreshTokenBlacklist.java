@@ -10,9 +10,13 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "refresh_token_blacklist", schema = "spring_boot_db", indexes = {
         @Index(name = "user_id", columnList = "user_id")
@@ -35,45 +39,5 @@ public class RefreshTokenBlacklist {
 
     @Column(name = "expires_at")
     private Instant expiresAt;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getJti() {
-        return jti;
-    }
-
-    public void setJti(String jti) {
-        this.jti = jti;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(Instant expiresAt) {
-        this.expiresAt = expiresAt;
-    }
 
 }
