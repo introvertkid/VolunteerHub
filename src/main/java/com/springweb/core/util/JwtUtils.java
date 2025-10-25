@@ -1,15 +1,16 @@
 package com.springweb.core.util;
 
-import com.springweb.core.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+@Getter
 @Component
-class JwtUtils {
+public class JwtUtils {
     private final SecretKey key;
 
     private final long accessTokenExpirationTimeInMs = 1 * 3600 * 1000; //1 hour
@@ -19,17 +20,17 @@ class JwtUtils {
         this.key = key;
     }
 
-    public String generateAccessToken(User user) {
-        return generateToken(user, accessTokenExpirationTimeInMs);
+    public String generateAccessToken(String username) {
+        return generateToken(username, accessTokenExpirationTimeInMs);
     }
 
-    public String generateRefreshToken(User user) {
-        return generateToken(user, refreshTokenExpirationTimeInMs);
+    public String generateRefreshToken(String username) {
+        return generateToken(username, refreshTokenExpirationTimeInMs);
     }
 
-    public String generateToken(User user, long expirationTime) {
+    public String generateToken(String username, long expirationTime) {
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key)
