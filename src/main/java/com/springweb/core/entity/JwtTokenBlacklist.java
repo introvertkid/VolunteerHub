@@ -10,27 +10,29 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
 
-@Setter
 @Getter
+@Setter
 @Entity
-@Table(name = "refresh_token_blacklist", schema = "spring_boot_db", indexes = {
+@Table(name = "jwt_token_blacklist", schema = "spring_boot_db", indexes = {
         @Index(name = "user_id", columnList = "user_id")
 })
-public class RefreshTokenBlacklist {
+public class JwtTokenBlacklist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "refresh_token_id", nullable = false)
+    @Column(name = "jwt_token_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
+    @Size(max = 255)
     @Column(name = "jti")
     private String jti;
 
@@ -39,5 +41,4 @@ public class RefreshTokenBlacklist {
 
     @Column(name = "expires_at")
     private Instant expiresAt;
-
 }

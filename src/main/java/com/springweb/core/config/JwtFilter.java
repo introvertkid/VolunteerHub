@@ -3,7 +3,7 @@ package com.springweb.core.config;
 import com.springweb.core.service.UserService;
 import com.springweb.core.util.JwtUtils;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.Cookie;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
 
 @Component
 class JwtFilter extends OncePerRequestFilter {
@@ -23,16 +25,8 @@ class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
-        String token = null;
-
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("access_token".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                }
-            }
-        }
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String token = jwtUtils.extractAccessToken(request);
 
         try {
             if (token != null && jwtUtils.isValid(token)) {
@@ -42,10 +36,10 @@ class JwtFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-
-            filterChain.doFilter(request, response);
         } catch (Exception e) {
-            System.out.println("JWT validation failed");
+            System.out.println("JWT validation failed" + e.getMessage());
+        } finally {
+            filterChain.doFilter(request, response);
         }
 
     }

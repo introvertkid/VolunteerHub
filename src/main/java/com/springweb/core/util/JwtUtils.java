@@ -2,12 +2,16 @@ package com.springweb.core.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Component
@@ -34,13 +38,36 @@ public class JwtUtils {
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .claim("jti", UUID.randomUUID().toString())
                 .signWith(key)
                 .compact();
+    }
+
+    public String extractAccessToken(HttpServletRequest request) {
+        String token = null;
+
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                }
+            }
+        }
+        return token;
     }
 
     public String extractUsername(String token) {
         return parseAllClaims(token).getSubject();
     }
+
+    public String extractJti(String token) {
+        return parseAllClaims(token).get("jti", String.class);
+    }
+
+    public Instant extractExpiration(String token) {
+        return parseAllClaims(token).getExpiration().toInstant();
+    }
+
 
     public boolean isValid(String token) {
         try {

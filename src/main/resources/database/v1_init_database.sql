@@ -133,10 +133,10 @@ create table notifications (
 );
 
 -- ======================
--- REFRESH TOKEN BLACKLIST
+-- JWT TOKEN BLACKLIST
 -- ======================
-create table refresh_token_blacklist (
-                                         refresh_token_id int primary key auto_increment,
+create table jwt_token_blacklist (
+                                         jwt_token_id int primary key auto_increment,
                                          user_id int,
                                          jti varchar(255),
                                          created_at datetime,
