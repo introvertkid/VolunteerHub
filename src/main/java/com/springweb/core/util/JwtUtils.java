@@ -3,6 +3,7 @@ package com.springweb.core.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.Getter;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -20,17 +21,17 @@ public class JwtUtils {
         this.key = key;
     }
 
-    public String generateAccessToken(String username) {
-        return generateToken(username, accessTokenExpirationTimeInMs);
+    public String generateAccessToken(UserDetails userDetails) {
+        return generateToken(userDetails, accessTokenExpirationTimeInMs);
     }
 
-    public String generateRefreshToken(String username) {
-        return generateToken(username, refreshTokenExpirationTimeInMs);
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateToken(userDetails, refreshTokenExpirationTimeInMs);
     }
 
-    public String generateToken(String username, long expirationTime) {
+    public String generateToken(UserDetails userDetails, long expirationTime) {
         return Jwts.builder()
-                .subject(username)
+                .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key)
