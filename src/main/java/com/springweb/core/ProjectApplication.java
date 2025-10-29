@@ -8,6 +8,7 @@ public class ProjectApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ProjectApplication.class, args);
+        System.out.println("Swagger is running at: http://localhost:8080/swagger-ui.html");
     }
 
 }
