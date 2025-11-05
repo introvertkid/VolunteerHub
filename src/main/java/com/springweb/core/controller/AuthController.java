@@ -71,6 +71,8 @@ class AuthController {
 
             Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
             refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true);
+            refreshCookie.setAttribute("SameSite", "Strict");
             refreshCookie.setPath("/");
             refreshCookie.setMaxAge((int) (jwtUtils.getRefreshTokenExpirationTimeInMs() / 1000));
 
@@ -111,6 +113,7 @@ class AuthController {
 
         Cookie refreshCookie = new Cookie("refresh_token", null);
         refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(true);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
 
