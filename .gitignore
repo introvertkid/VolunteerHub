@@ -1,8 +1,94 @@
+# =========================
+# === Common (All OS) ===
+# =========================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.bak
+
+# IDE & system files
+.idea/
+.vscode/
+*.iml
+*.class
+out/
+build/
+target/
+bin/
+
+# OS metadata
+ehthumbs.db
+desktop.ini
+
+# =========================
+# === Git / Environment ===
+# =========================
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# =========================
+# === Backend (Spring Boot) ===
+# =========================
+backend/target/
+backend/.mvn/
+backend/.gradle/
+backend/build/
+backend/*.iml
+backend/logs/
+backend/*.log
+
+# Local Maven Repository (optional)
+.mvn/
+.m2/
+
+# =========================
+# === Frontend (React / Vite) ===
+# =========================
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.eslintcache
+frontend/.parcel-cache/
+frontend/.next/
+frontend/.turbo/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/package-lock.json
+frontend/.env
+frontend/.env.local
+
+# =========================
+# === Docker / Compose ===
+# =========================
+# Ignore temporary Docker build files
+**/Dockerfile~
+**/docker-compose.override.yml
+.docker/
+docker-compose.override.yml
+
+# =========================
+# === JetBrains / IntelliJ ===
+# =========================
+# IntelliJ project files
+*.iws
+*.ipr
+.idea_modules/
+
+# =========================
+# === Other temporary files ===
+# =========================
+tmp/
+temp/
+__pycache__/
+
 src/main/resources/application.properties
 application.properties
 
-HELP.md
-target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -16,21 +102,11 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### VS Code ###
-.vscode/
