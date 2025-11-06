@@ -1,0 +1,11 @@
+package com.springweb.core.dto;
+
+public record EventRegistrationDto(
+        Integer registrationId,
+        Integer userId,
+        String fullName,
+        String email,
+        String status,            // "PENDING", "APPROVED", "REJECTED", "COMPLETED", "CANCELLED"
+        String registrationDate,
+        String cancelAt
+) {}
