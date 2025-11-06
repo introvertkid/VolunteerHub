@@ -46,6 +46,7 @@ public class UserService implements UserDetailsService {
                 .phoneNumber(dto.getPhoneNumber())
                 .password(encoder.encode(dto.getPassword()))
                 .role(role)
+                .status(User.UserStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .build();
 
@@ -57,6 +58,18 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
+    public void lockUserByEmail(String email) {
+        User user = findByEmail(email);
+        user.setStatus(User.UserStatus.LOCKED);
+        userRepository.save(user);
+    }
+
+    public void unlockUserByEmail(String email) {
+        User user = findByEmail(email);
+        user.setStatus(User.UserStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.getByEmail(email)
@@ -65,6 +78,7 @@ public class UserService implements UserDetailsService {
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
                 .authorities(user.getRole().getName())
+                .accountLocked(user.getStatus() != null && user.getStatus() == User.UserStatus.LOCKED)
                 .build();
     }
 }

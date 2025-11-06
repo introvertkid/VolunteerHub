@@ -37,6 +37,15 @@ class JwtFilter extends OncePerRequestFilter {
                 if (!blacklistRepository.existsByJti(jti)) {
                     String email = jwtUtils.extractUsername(token);
                     UserDetails user = userService.loadUserByUsername(email);
+
+                    // If account is locked, do not authenticate
+                    if (!user.isAccountNonLocked()) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Account is locked\"}");
+                        return;
+                    }
+
                     UsernamePasswordAuthenticationToken authenticationToken =
                             new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);

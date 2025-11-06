@@ -8,6 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -32,9 +34,23 @@ class UserController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @GetMapping("/export-user-data")
+    @GetMapping("/export")
     public void exportUser(String role) throws IOException {
         exportDataUtils.exportUserWithSpecificRoleToCsv(role);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{email}/lock")
+    public String lockUser(@PathVariable String email) {
+        userService.lockUserByEmail(email);
+        return "User locked";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{email}/unlock")
+    public String unlockUser(@PathVariable String email) {
+        userService.unlockUserByEmail(email);
+        return "User unlocked";
     }
 
     @GetMapping("/me")
