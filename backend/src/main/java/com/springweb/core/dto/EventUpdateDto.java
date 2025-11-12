@@ -11,7 +11,7 @@ public record EventUpdateDto(
         String description,
 
         @Positive(message = "ID danh mục phải là số dương")
-        Long categoryId,
+        Integer categoryId,
 
         @Size(max = 255, message = "Địa chỉ tối đa 255 ký tự")
         String address,

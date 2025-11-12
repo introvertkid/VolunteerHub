@@ -186,7 +186,7 @@ public class EventService {
     }
 
     @Transactional
-    public void approveOrRejectRegistration(Long regId, String action, String managerEmail) {
+    public void approveOrRejectRegistration(Integer regId, String action, String managerEmail) {
         User manager = userRepo.getByEmail(managerEmail).orElseThrow();
         EventRegistration reg = regRepo.findById(regId).orElseThrow();
 
@@ -242,41 +242,6 @@ public class EventService {
     public String exportEvents(String format) {
         List<Event> events = eventRepo.findAll();
         return format.equals("csv") ? toCsv(events) : toJson(events);
-    }
-
-    /* ==================== DASHBOARD ==================== */
-
-    public DashboardDto getDashboard(String email) {
-        User user = userRepo.getByEmail(email).orElseThrow();
-
-        List<EventSummaryDto> upcoming = eventRepo.findUpcomingApproved(5).stream()
-                .map(this::toSummaryDto).toList();
-
-        List<EventSummaryDto> hot = eventRepo.findHotEvents(5).stream()
-                .map(this::toSummaryDto).toList();
-
-        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        List<EventSummaryDto> newPosts = postRepo.findEventsWithRecentPosts(sevenDaysAgo)
-                .stream()
-                .map(this::toSummaryDto)
-                .toList();
-
-        int unread = notificationService.countUnread(user);
-
-        return new DashboardDto(upcoming, hot, newPosts, unread);
-    }
-
-    /* ==================== HELPER METHODS ==================== */
-
-    private EventSummaryDto toSummaryDto(Event e) {
-        return new EventSummaryDto(
-                e.getId(),
-                e.getTitle(),
-                e.getCity(),
-                e.getStartAt().toString(),
-                e.getStatus().name(),
-                regRepo.countByEvent(e)
-        );
     }
 
     private EventDetailDto toDetailDto(Event e) {

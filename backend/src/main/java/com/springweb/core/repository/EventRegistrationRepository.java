@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Long> {
+public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Integer> {
 
     boolean existsByUserAndEvent(User user, Event event);
 
@@ -20,8 +20,4 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     List<EventRegistration> findByEvent(Event event);
 
     Integer countByEvent(Event event);
-
-//    long countByEventAndStatus(Event event, RegistrationStatus status);
-//
-//    Optional<EventRegistration> findByRegistrationIdAndEvent_CreatedBy(Long registrationId, User manager);
 }
