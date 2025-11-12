@@ -51,8 +51,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       const data = await login(email, password);
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
+      console.log(data);
+      setUser(data);
       toast.success('Đăng nhập thành công!');
       navigate('/');
     } catch (error: any) {

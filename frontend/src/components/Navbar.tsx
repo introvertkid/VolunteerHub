@@ -34,7 +34,7 @@ export const Navbar = () => {
           {user ? (
             <>
               <span className="text-sm text-muted-foreground hidden md:inline">
-                Xin chào, {user.email}
+                Xin chào, {user.fullName}
               </span>
               <Button variant="ghost" onClick={signOut}>
                 <LogOut className="h-4 w-4 mr-2" />
