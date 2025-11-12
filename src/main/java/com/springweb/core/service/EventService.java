@@ -7,6 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -44,36 +45,43 @@ public class EventService {
 
     /* ==================== TÌNH NGUYỆN VIÊN ==================== */
 
-    public Page<EventSummaryDto> listEvents(String category, String city, String status, Pageable pageable) {
-        Page<Event> page = eventRepo.findApprovedEvents(category, city, status, pageable);
-        return page.map(this::toSummaryDto);
+    public Page<EventDetailDto> getEvents(EventSearchRequestDto req, Pageable pageable) {
+        if (pageable == null) {
+            pageable = PageRequest.of(0, 10); // giá trị mặc định
+        }
+
+        Page<Event> page = eventRepo.findEvents(
+                req.category(),
+                req.city(),
+                req.district(),
+                req.ward(),
+                req.status(),
+                pageable
+        );
+        return page.map(this::toDetailDto);
     }
 
-    public EventDetailDto getEventDetail(Long eventId) {
+    public EventDetailDto getEventDetail(Integer eventId) {
         Event event = eventRepo.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Sự kiện không tồn tại"));
-
-        if (event.getStatus() != EventStatus.APPROVED) {
-            throw new AccessDeniedException("Sự kiện chưa được duyệt");
-        }
+                .orElseThrow(() -> new EntityNotFoundException("Event not found!"));
 
         return toDetailDto(event);
     }
 
     @Transactional
-    public void registerEvent(Long eventId, String email) {
+    public void registerEvent(Integer eventId, String email) {
         User volunteer = userRepo.getByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Người dùng không tồn tại"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found!"));
 
         Event event = eventRepo.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Sự kiện không tồn tại"));
+                .orElseThrow(() -> new EntityNotFoundException("Event not found!"));
 
         if (event.getStatus() != EventStatus.APPROVED) {
-            throw new IllegalStateException("Sự kiện chưa được duyệt");
+            throw new IllegalStateException("Event has not been approved yet!");
         }
 
         if (regRepo.existsByUserAndEvent(volunteer, event)) {
-            throw new IllegalStateException("Bạn đã đăng ký sự kiện này");
+            throw new IllegalStateException("You have already registered this event!");
         }
 
         EventRegistration reg = new EventRegistration();
@@ -91,7 +99,7 @@ public class EventService {
     }
 
     @Transactional
-    public void cancelRegistration(Long eventId, String email) {
+    public void cancelRegistration(Integer eventId, String email) {
         User volunteer = userRepo.getByEmail(email).orElseThrow();
         Event event = eventRepo.findById(eventId).orElseThrow();
 
@@ -109,17 +117,18 @@ public class EventService {
         notificationService.send(volunteer, "Hủy đăng ký sự kiện \"" + event.getTitle() + "\" thành công");
     }
 
-    public List<EventRegistrationDto> getMyRegistrations(String email) {
+    public List<EventDetailDto> getMyRegistrations(String email) {
         User user = userRepo.getByEmail(email).orElseThrow();
         return regRepo.findByUser(user).stream()
-                .map(this::toRegistrationDto)
+                .map(EventRegistration::getEvent)
+                .map(this::toDetailDto)
                 .toList();
     }
 
     /* ==================== QUẢN LÝ SỰ KIỆN ==================== */
 
     @Transactional
-    public EventCreateResponseDto createEvent(EventCreateDto dto, String email) {
+    public void createEvent(EventCreateDto dto, String email) {
         User manager = userRepo.getByEmail(email).orElseThrow();
         if (!manager.getRole().getName().equals("ROLE_MANAGER")) {
             throw new AccessDeniedException("Chỉ quản lý mới tạo được sự kiện");
@@ -143,12 +152,10 @@ public class EventService {
         eventRepo.save(event);
 
         notificationService.send(manager, "Sự kiện \"" + event.getTitle() + "\" đã được tạo, chờ duyệt");
-
-        return new EventCreateResponseDto(event.getId(), "Tạo sự kiện thành công");
     }
 
     @Transactional
-    public void updateEvent(Long eventId, EventUpdateDto dto, String email) {
+    public void updateEvent(Integer eventId, EventUpdateDto dto, String email) {
         User manager = userRepo.getByEmail(email).orElseThrow();
         Event event = eventRepo.findById(eventId).orElseThrow();
 
@@ -164,7 +171,7 @@ public class EventService {
     }
 
     @Transactional
-    public void deleteEvent(Long eventId, String email) {
+    public void deleteEvent(Integer eventId, String email) {
         User manager = userRepo.getByEmail(email).orElseThrow();
         Event event = eventRepo.findById(eventId).orElseThrow();
 
@@ -208,25 +215,7 @@ public class EventService {
         notificationService.send(reg.getUser(), msg);
     }
 
-    @Transactional
-    public void markRegistrationCompleted(Long regId, String managerEmail) {
-        User manager = userRepo.getByEmail(managerEmail).orElseThrow();
-        EventRegistration reg = regRepo.findById(regId).orElseThrow();
-
-        if (!reg.getEvent().getCreatedBy().equals(manager)) {
-            throw new AccessDeniedException("Không có quyền");
-        }
-        if (reg.getStatus() != RegistrationStatus.APPROVED) {
-            throw new IllegalStateException("Chỉ đánh dấu hoàn thành khi đã duyệt");
-        }
-
-        reg.setStatus(RegistrationStatus.COMPLETED);
-        regRepo.save(reg);
-
-        notificationService.send(reg.getUser(), "Bạn đã hoàn thành sự kiện \"" + reg.getEvent().getTitle() + "\"");
-    }
-
-    public List<EventRegistrationDto> getRegistrationsByEvent(Long eventId) {
+    public List<EventRegistrationDto> getRegistrationsByEvent(Integer eventId) {
         Event event = eventRepo.findById(eventId).orElseThrow();
         return regRepo.findByEvent(event).stream()
                 .map(this::toRegistrationDto)
@@ -236,23 +225,18 @@ public class EventService {
     /* ==================== ADMIN ==================== */
 
     @Transactional
-    public void adminReviewEvent(Long eventId, String action) {
+    public void adminReviewEvent(Integer eventId, String action) {
         Event event = eventRepo.findById(eventId).orElseThrow();
 
         EventStatus status = switch (action) {
             case "APPROVE" -> EventStatus.APPROVED;
-            case "DELETE" -> {
-                eventRepo.delete(event);
-                yield null;
-            }
-            default -> throw new IllegalArgumentException("Hành động không hợp lệ");
+            case "REJECT" -> EventStatus.REJECTED;
+            default -> throw new IllegalArgumentException("Invalid action!");
         };
 
-        if (status != null) {
-            event.setStatus(status);
-            eventRepo.save(event);
-            notificationService.send(event.getCreatedBy(), "Sự kiện \"" + event.getTitle() + "\" đã được duyệt");
-        }
+        event.setStatus(status);
+        eventRepo.save(event);
+        notificationService.send(event.getCreatedBy(), "Sự kiện \"" + event.getTitle() + "\" đã được duyệt");
     }
 
     public String exportEvents(String format) {
@@ -296,24 +280,24 @@ public class EventService {
     }
 
     private EventDetailDto toDetailDto(Event e) {
+        // #TODO: Check isReg
         boolean isReg = false;
-        boolean canEdit = false;
-
-        String fullAddress = String.join(", ",
-                Stream.of(e.getAddress(), e.getWard(), e.getDistrict(), e.getCity()).filter(s -> s != null && !s.isBlank()).toList());
 
         return new EventDetailDto(
                 e.getId(),
                 e.getTitle(),
                 e.getDescription(),
                 e.getCategory().getCategoryName(),
-                fullAddress,
+                e.getAddress(),
+                e.getCity(),
+                e.getDistrict(),
+                e.getWard(),
                 e.getStartAt().toString(),
                 e.getEndAt().toString(),
                 e.getStatus().name(),
+                e.getCreatedBy().getFullName(),
                 regRepo.countByEvent(e),
                 isReg,
-                canEdit,
                 e.getStatus() == EventStatus.APPROVED
         );
     }
@@ -321,6 +305,7 @@ public class EventService {
     private EventRegistrationDto toRegistrationDto(EventRegistration r) {
         return new EventRegistrationDto(
                 r.getId(),
+                r.getEvent().getTitle(),
                 r.getUser().getId(),
                 r.getUser().getFullName(),
                 r.getUser().getEmail(),

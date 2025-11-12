@@ -5,12 +5,15 @@ public record EventDetailDto(
         String title,
         String description,
         String categoryName,
-        String fullAddress,       // "123 Đường Láng, Đống Đa, Hà Nội"
+        String address,
+        String city,
+        String district,
+        String ward,
         String startAt,
         String endAt,
         String status,
-        Long registeredCount,
+        String createdBy,
+        Integer registeredCount,
         Boolean isRegistered,     // cho volunteer
-        Boolean canEdit,          // cho manager
         Boolean isApproved        // cho manager/admin
 ) {}

@@ -19,7 +19,7 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
 
     List<EventRegistration> findByEvent(Event event);
 
-    long countByEvent(Event event);
+    Integer countByEvent(Event event);
 
 //    long countByEventAndStatus(Event event, RegistrationStatus status);
 //

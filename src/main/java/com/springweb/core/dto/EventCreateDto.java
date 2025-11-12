@@ -1,39 +1,44 @@
 package com.springweb.core.dto;
 
 import jakarta.validation.constraints.*;
-import java.time.LocalDateTime;
 
 public record EventCreateDto(
 
-        @NotBlank(message = "Tiêu đề không được để trống")
-        @Size(max = 255, message = "Tiêu đề tối đa 255 ký tự")
+        @NotBlank(message = "Title is required")
+        @Size(max = 255, message = "Title must not have above 255 characters")
         String title,
 
-        @Size(max = 2000, message = "Mô tả tối đa 2000 ký tự")
+        @Size(max = 2000, message = "Description must not have above 2000 characters")
         String description,
 
-        @NotNull(message = "Danh mục bắt buộc")
-        @Positive(message = "ID danh mục phải là số dương")
-        Long categoryId,
+        @NotBlank(message = "Category is required")
+        @Positive(message = "Category ID must be positive")
+        Integer categoryId,
 
-        @NotBlank(message = "Địa chỉ cụ thể bắt buộc")
-        @Size(max = 255, message = "Địa chỉ tối đa 255 ký tự")
+        @NotBlank(message = "Address is required")
+        @Size(max = 255, message = "Address must not have above 255 characters")
         String address,
 
-        @NotBlank(message = "Tỉnh/Thành phố bắt buộc")
+        @NotBlank(message = "City is required")
+        @Size(max = 255, message = "City must not have above 255 characters")
         String city,
 
+        @NotBlank(message = "District is required")
+        @Size(max = 255, message = "District must not have above 255 characters")
         String district,
+
+        @NotBlank(message = "Ward is required")
+        @Size(max = 255, message = "Ward must not have above 255 characters")
         String ward,
 
-        @NotBlank(message = "Thời gian bắt đầu bắt buộc")
+        @NotBlank(message = "Start time is required")
         @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?$",
-                message = "Thời gian bắt đầu phải định dạng ISO: YYYY-MM-DDTHH:MM")
+                message = "Start time must be ISO format: YYYY-MM-DDTHH:MM")
         String startAt,
 
         @NotBlank(message = "Thời gian kết thúc bắt buộc")
         @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?$",
-                message = "Thời gian kết thúc phải định dạng ISO: YYYY-MM-DDTHH:MM")
+                message = "End time must be ISO format: YYYY-MM-DDTHH:MM")
         String endAt
 
 ) {}

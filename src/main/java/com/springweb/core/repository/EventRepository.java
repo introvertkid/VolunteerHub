@@ -12,19 +12,22 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface EventRepository extends JpaRepository<Event, Long> {
+public interface EventRepository extends JpaRepository<Event, Integer> {
 
     // Danh sách sự kiện đã duyệt + filter
     @Query("""
-        SELECT e FROM Event e 
-        WHERE e.status = 'APPROVED'
-        AND (:category IS NULL OR e.category.categoryName = :category)
+        SELECT e FROM Event e
+        WHERE (:category IS NULL OR e.category.categoryName = :category)
         AND (:city IS NULL OR e.city = :city)
+        AND (:district IS NULL OR e.district = :district)
+        AND (:ward IS NULL OR e.ward = :ward)
         AND (:status IS NULL OR e.status = :status)
         """)
-    Page<Event> findApprovedEvents(
+    Page<Event> findEvents(
             @Param("category") String category,
             @Param("city") String city,
+            @Param("district") String district,
+            @Param("ward") String ward,
             @Param("status") String status,
             Pageable pageable);
 
