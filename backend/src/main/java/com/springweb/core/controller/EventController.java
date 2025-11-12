@@ -114,7 +114,7 @@ class EventController {
     @PatchMapping("/registrations/{registrationId}")
     @PreAuthorize("hasRole('ROLE_MANAGER')")
     public ResponseEntity<?> approveRegistration(
-            @PathVariable Long registrationId,
+            @PathVariable Integer registrationId,
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal UserDetails userDetails) {
 
