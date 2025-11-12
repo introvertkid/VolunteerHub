@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -71,6 +72,8 @@ class AuthController {
 
             Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
             refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true);
+            refreshCookie.setAttribute("SameSite", "Strict");
             refreshCookie.setPath("/");
             refreshCookie.setMaxAge((int) (jwtUtils.getRefreshTokenExpirationTimeInMs() / 1000));
 
@@ -81,6 +84,9 @@ class AuthController {
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid email or password"));
+        } catch (LockedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Account is locked"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Internal server error"));
@@ -111,6 +117,7 @@ class AuthController {
 
         Cookie refreshCookie = new Cookie("refresh_token", null);
         refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(true);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
 

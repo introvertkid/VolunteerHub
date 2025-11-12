@@ -1,5 +1,6 @@
 package com.springweb.core.config;
 
+import com.springweb.core.repository.JwtTokenBlacklistRepository;
 import com.springweb.core.service.UserService;
 import com.springweb.core.util.JwtUtils;
 import jakarta.servlet.FilterChain;
@@ -18,10 +19,12 @@ import java.io.IOException;
 class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final UserService userService;
+    private final JwtTokenBlacklistRepository blacklistRepository;
 
-    public JwtFilter(JwtUtils jwtUtils, UserService userService) {
+    public JwtFilter(JwtUtils jwtUtils, UserService userService, JwtTokenBlacklistRepository blacklistRepository) {
         this.jwtUtils = jwtUtils;
         this.userService = userService;
+        this.blacklistRepository = blacklistRepository;
     }
 
     @Override
@@ -30,14 +33,26 @@ class JwtFilter extends OncePerRequestFilter {
 
         try {
             if (token != null && jwtUtils.isValid(token)) {
-                String email = jwtUtils.extractUsername(token);
-                UserDetails user = userService.loadUserByUsername(email);
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                String jti = jwtUtils.extractJti(token);
+                if (!blacklistRepository.existsByJti(jti)) {
+                    String email = jwtUtils.extractUsername(token);
+                    UserDetails user = userService.loadUserByUsername(email);
+
+                    // If account is locked, do not authenticate
+                    if (!user.isAccountNonLocked()) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Account is locked\"}");
+                        return;
+                    }
+
+                    UsernamePasswordAuthenticationToken authenticationToken =
+                            new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                }
             }
         } catch (Exception e) {
-            System.out.println("JWT validation failed" + e.getMessage());
+            System.out.println("JWT validation failed: " + e.getMessage());
         } finally {
             filterChain.doFilter(request, response);
         }
