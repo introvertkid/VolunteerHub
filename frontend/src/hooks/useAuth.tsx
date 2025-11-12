@@ -24,17 +24,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 🧠 Lấy user từ token lưu trong localStorage
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    getCurrentUser(token)
+    getCurrentUser()
       .then(setUser)
-      .catch(() => localStorage.removeItem('token'))
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 

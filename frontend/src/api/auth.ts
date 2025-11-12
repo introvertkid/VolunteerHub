@@ -19,9 +19,7 @@ export const logout = async () => {
   await axios.post(`${API_URL}/logout`);
 };
 
-export const getCurrentUser = async (token: string) => {
-  const res = await axios.get(`${API_URL}/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+export const getCurrentUser = async () => {
+  const res = await axios.get(`${API_USER}/me`, { withCredentials: true });
   return res.data;
 };
