@@ -1,13 +1,10 @@
 package com.springweb.core.controller;
 
 import com.springweb.core.dto.*;
-import com.springweb.core.repository.EventRepository;
 import com.springweb.core.service.EventService;
-import com.springweb.core.util.JwtUtils;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
