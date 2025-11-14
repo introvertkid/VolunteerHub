@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -88,7 +89,7 @@ public class EventService {
         reg.setUser(volunteer);
         reg.setEvent(event);
         reg.setStatus(RegistrationStatus.PENDING);
-        reg.setRegistrationDate(Instant.from(LocalDateTime.now()));
+        reg.setRegistrationDate(Instant.now());
         regRepo.save(reg);
 
         // Gửi thông báo cho volunteer
@@ -106,12 +107,12 @@ public class EventService {
         EventRegistration reg = regRepo.findByUserAndEvent(volunteer, event)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đăng ký"));
 
-        if (reg.getStatus() == RegistrationStatus.APPROVED && event.getStartAt().isBefore(Instant.from(LocalDateTime.now().plusHours(24)))) {
+        if (reg.getStatus() == RegistrationStatus.APPROVED && event.getStartAt().isBefore(Instant.now().plus(Duration.ofHours(24)))) {
             throw new IllegalStateException("Không thể hủy trong vòng 24h trước sự kiện");
         }
 
         reg.setStatus(RegistrationStatus.CANCELLED);
-        reg.setCancelAt(Instant.from(LocalDateTime.now()));
+        reg.setCancelAt(Instant.now());
         regRepo.save(reg);
 
         notificationService.send(volunteer, "Hủy đăng ký sự kiện \"" + event.getTitle() + "\" thành công");
@@ -145,8 +146,8 @@ public class EventService {
         event.setCity(dto.city());
         event.setDistrict(dto.district());
         event.setWard(dto.ward());
-        event.setStartAt(Instant.from(LocalDateTime.parse(dto.startAt(), ISO_FORMATTER)));
-        event.setEndAt(Instant.from(LocalDateTime.parse(dto.endAt(), ISO_FORMATTER)));
+        event.setStartAt(Instant.parse(dto.startAt()));
+        event.setEndAt(Instant.parse(dto.endAt()));
         event.setCreatedBy(manager);
         event.setStatus(EventStatus.PENDING);
         eventRepo.save(event);
@@ -191,16 +192,16 @@ public class EventService {
         EventRegistration reg = regRepo.findById(regId).orElseThrow();
 
         if (!reg.getEvent().getCreatedBy().equals(manager)) {
-            throw new AccessDeniedException("Bạn không quản lý sự kiện này");
+            throw new AccessDeniedException("You are not the manager who created this event");
         }
 
-        RegistrationStatus status = switch (action) {
+        RegistrationStatus status = switch (action.toUpperCase()) {
             case "APPROVE" -> RegistrationStatus.APPROVED;
             case "REJECT" -> RegistrationStatus.REJECTED;
-            default -> throw new IllegalArgumentException("Hành động không hợp lệ");
+            default -> throw new IllegalArgumentException("Invalid action");
         };
 
-        reg.setStatus(switch (action) {
+        reg.setStatus(switch (action.toUpperCase()) {
             case "APPROVE" -> RegistrationStatus.APPROVED;
             case "REJECT" -> RegistrationStatus.REJECTED;
             default -> throw new IllegalArgumentException("Invalid action");
@@ -209,8 +210,8 @@ public class EventService {
         regRepo.save(reg);
 
         String msg = status == RegistrationStatus.APPROVED ?
-                "Đăng ký sự kiện \"" + reg.getEvent().getTitle() + "\" đã được duyệt!" :
-                "Đăng ký sự kiện \"" + reg.getEvent().getTitle() + "\" bị từ chối";
+                "This registration for \"" + reg.getEvent().getTitle() + "\" has been approved!" :
+                "This registration for \"" + reg.getEvent().getTitle() + "\" has been rejected!";
 
         notificationService.send(reg.getUser(), msg);
     }
@@ -228,7 +229,7 @@ public class EventService {
     public void adminReviewEvent(Integer eventId, String action) {
         Event event = eventRepo.findById(eventId).orElseThrow();
 
-        EventStatus status = switch (action) {
+        EventStatus status = switch (action.toUpperCase()) {
             case "APPROVE" -> EventStatus.APPROVED;
             case "REJECT" -> EventStatus.REJECTED;
             default -> throw new IllegalArgumentException("Invalid action!");
