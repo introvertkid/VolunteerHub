@@ -10,7 +10,7 @@ export const FeaturedEvents = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/events/featured');
+        const res = await axios.get('http://localhost:8080/api/events');
         setEvents(res.data);
       } catch (err) {
         console.error('Error fetching events:', err);
@@ -46,17 +46,24 @@ export const FeaturedEvents = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {events.map((event) => (
               <EventCard
-                key={event.id}
-                id={event.id}
+                key={event.eventId}
+                eventId={event.eventId}
                 title={event.title}
                 description={event.description}
-                date={event.event_date}
-                location={event.location}
-                category={event.category}
-                currentParticipants={event.current_participants}
-                maxParticipants={event.max_participants}
-                imageUrl={event.image_url}
+                categoryName={event.categoryName}
+                address={event.address}
+                ward={event.ward}
+                district={event.district}
+                city={event.city}
+                startAt={event.startAt}
+                endAt={event.endAt}
+                status={event.status}
+                createdBy={event.createdBy}
+                registeredCount={event.registeredCount}
+                isRegistered={event.isRegistered}
+                isApproved={event.isApproved}
               />
+
             ))}
           </div>
         ) : (
