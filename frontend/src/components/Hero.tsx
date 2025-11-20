@@ -42,7 +42,7 @@ export const Hero = () => {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link to="/register">Trở thành tình nguyện viên</Link>
+                <Link to="/auth" state={{ tab: "register" }}>Trở thành tình nguyện viên</Link>
               </Button>
             </div>
 
