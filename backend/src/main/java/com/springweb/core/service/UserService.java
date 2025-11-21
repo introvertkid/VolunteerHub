@@ -70,6 +70,14 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    public void changeUserRole(String email, String roleName) {
+        User user = findByEmail(email);
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new IllegalStateException("Role not found: " + roleName));
+        user.setRole(role);
+        userRepository.save(user);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.getByEmail(email)
