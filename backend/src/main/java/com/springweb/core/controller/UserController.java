@@ -1,6 +1,7 @@
 package com.springweb.core.controller;
 
 import com.springweb.core.entity.User;
+import com.springweb.core.dto.ChangeUserRoleDto;
 import com.springweb.core.service.UserService;
 import com.springweb.core.util.ExportDataUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -51,6 +53,13 @@ class UserController {
     public String unlockUser(@PathVariable String email) {
         userService.unlockUserByEmail(email);
         return "User unlocked";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/change-role")
+    public String changeUserRole(@jakarta.validation.Valid @RequestBody ChangeUserRoleDto dto) {
+        userService.changeUserRole(dto.getEmail(), dto.getRoleName());
+        return "User role updated";
     }
 
     @GetMapping("/me")
