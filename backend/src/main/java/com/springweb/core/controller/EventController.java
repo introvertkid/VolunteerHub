@@ -26,18 +26,22 @@ class EventController {
 
     /** GET: event list */
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_VOLUNTEER')")
     public ResponseEntity<Page<EventDetailDto>> listEvents(
+            @AuthenticationPrincipal UserDetails userDetails,
             @ModelAttribute EventSearchRequestDto eventSearchRequestDto,
             @Nullable Pageable pageable) {
 
-        Page<EventDetailDto> page = eventService.getEvents(eventSearchRequestDto, pageable);
+        Page<EventDetailDto> page = eventService.getEvents(userDetails.getUsername(), eventSearchRequestDto, pageable);
         return ResponseEntity.ok(page);
     }
 
     /** GET: details of an event */
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventDetailDto> getEvent(@PathVariable Integer eventId) {
-        EventDetailDto dto = eventService.getEventDetail(eventId);
+    public ResponseEntity<EventDetailDto> getEvent(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer eventId) {
+        EventDetailDto dto = eventService.getEventDetail(eventId, userDetails.getUsername());
         return ResponseEntity.ok(dto);
     }
 
