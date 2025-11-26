@@ -2,8 +2,8 @@ package com.springweb.core.service;
 
 import com.springweb.core.dto.*;
 import com.springweb.core.entity.*;
+import com.springweb.core.exception.BusinessException;
 import com.springweb.core.repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
@@ -62,7 +62,7 @@ public class EventService {
 
     public EventDetailDto getEventDetail(Integer eventId, String email) {
         Event event = eventRepo.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+                .orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
 
         return toDetailDto(event, email);
     }
@@ -70,17 +70,17 @@ public class EventService {
     @Transactional
     public void registerEvent(Integer eventId, String email) {
         User volunteer = userRepo.getByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Không tìm thấy người dùng"));
 
         Event event = eventRepo.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+                .orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
 
         if (event.getStatus() != EventStatus.APPROVED) {
-            throw new IllegalStateException("Sự kiện chưa được duyệt");
+            throw new BusinessException("EVENT_NOT_APPROVED", "Sự kiện chưa được duyệt");
         }
 
         if (regRepo.existsByUserAndEvent(volunteer, event)) {
-            throw new IllegalStateException("Bạn đã đăng ký sự kiện này");
+            throw new BusinessException("USER_ALREADY_REGISTERED_EVENT", "Bạn đã đăng ký sự kiện này");
         }
 
         EventRegistration reg = new EventRegistration();
@@ -99,14 +99,14 @@ public class EventService {
 
     @Transactional
     public void cancelRegistration(Integer eventId, String email) {
-        User volunteer = userRepo.getByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+        User volunteer = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Không tìm thấy người dùng"));
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
 
         EventRegistration reg = regRepo.findByUserAndEvent(volunteer, event)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đăng ký"));
+                .orElseThrow(() -> new BusinessException("REGISTRATION_NOT_FOUND", "Không tìm thấy đăng ký"));
 
         if (reg.getStatus() == RegistrationStatus.APPROVED && event.getStartAt().isBefore(Instant.now().plus(Duration.ofHours(24)))) {
-            throw new IllegalStateException("Không thể hủy trong vòng 24h trước sự kiện");
+            throw new BusinessException("CANCELLATION_TOO_LATE", "Không thể hủy trong vòng 24h trước sự kiện");
         }
 
         reg.setStatus(RegistrationStatus.CANCELLED);
@@ -117,7 +117,7 @@ public class EventService {
     }
 
     public List<EventDetailDto> getMyRegistrations(String email) {
-        User user = userRepo.getByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+        User user = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Không tìm thấy người dùng"));
         return regRepo.findByUser(user).stream()
                 .map(EventRegistration::getEvent)
                 .map(event -> toDetailDto(event, email))
@@ -128,13 +128,13 @@ public class EventService {
 
     @Transactional
     public void createEvent(EventCreateDto dto, String email) {
-        User manager = userRepo.getByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy quản trị viên"));
+        User manager = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
         if (!manager.getRole().getName().equals("ROLE_MANAGER")) {
             throw new AccessDeniedException("Chỉ quản lý mới tạo được sự kiện");
         }
 
         Category category = categoryRepo.findById(dto.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Danh mục không tồn tại"));
+                .orElseThrow(() -> new BusinessException("CATEGORY_NOT_FOUND", "Danh mục không tồn tại"));
 
         Event event = new Event();
         event.setTitle(dto.title());
@@ -155,14 +155,14 @@ public class EventService {
 
     @Transactional
     public void updateEvent(Integer eventId, EventUpdateDto dto, String email) {
-        User manager = userRepo.getByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy quản trị viên"));
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+        User manager = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
 
         if (!event.getCreatedBy().equals(manager)) {
-            throw new AccessDeniedException("Bạn không phải chủ sở hữu");
+            throw new AccessDeniedException("Bạn không phải là người tạo sự kiện này");
         }
         if (event.getStatus() != EventStatus.PENDING) {
-            throw new IllegalStateException("Chỉ sửa được khi đang chờ duyệt");
+            throw new BusinessException("EVENT_NOT_EDITABLE", "Chỉ sửa được khi đang chờ duyệt");
         }
 
         updateEventFromDto(event, dto);
@@ -171,14 +171,11 @@ public class EventService {
 
     @Transactional
     public void deleteEvent(Integer eventId, String email) {
-        User manager = userRepo.getByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy quản trị viên"));
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+        User manager = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
 
         if (!event.getCreatedBy().equals(manager)) {
             throw new AccessDeniedException("Không có quyền xóa");
-        }
-        if (regRepo.countByEvent(event) > 0) {
-            throw new IllegalStateException("Không thể xóa sự kiện có người đăng ký");
         }
 
         eventRepo.delete(event);
@@ -186,8 +183,8 @@ public class EventService {
 
     @Transactional
     public void approveOrRejectRegistration(Integer regId, String action, String managerEmail) {
-        User manager = userRepo.getByEmail(managerEmail).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy quản trị viên"));
-        EventRegistration reg = regRepo.findById(regId).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy đơn đăng ký sự kiện"));
+        User manager = userRepo.getByEmail(managerEmail).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
+        EventRegistration reg = regRepo.findById(regId).orElseThrow(() -> new BusinessException("REGISTRATION_NOT_FOUND", "Không tìm thấy đăng ký"));
 
         if (!reg.getEvent().getCreatedBy().equals(manager)) {
             throw new AccessDeniedException("Bạn không phải là người tạo sự kiện này");
@@ -196,13 +193,13 @@ public class EventService {
         RegistrationStatus status = switch (action.toUpperCase()) {
             case "APPROVE" -> RegistrationStatus.APPROVED;
             case "REJECT" -> RegistrationStatus.REJECTED;
-            default -> throw new IllegalArgumentException("Hành động không hợp lệ");
+            default -> throw new BusinessException("INVALID_ACTION", "Hành động không hợp lệ");
         };
 
         reg.setStatus(switch (action.toUpperCase()) {
             case "APPROVE" -> RegistrationStatus.APPROVED;
             case "REJECT" -> RegistrationStatus.REJECTED;
-            default -> throw new IllegalArgumentException("Hành động không hợp lệ");
+            default -> throw new BusinessException("INVALID_ACTION", "Hành động không hợp lệ");
         });
         reg.setApprovedBy(manager);
         regRepo.save(reg);
@@ -215,7 +212,7 @@ public class EventService {
     }
 
     public List<EventRegistrationDto> getRegistrationsByEvent(Integer eventId) {
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
         return regRepo.findByEvent(event).stream()
                 .map(this::toRegistrationDto)
                 .toList();
@@ -225,12 +222,12 @@ public class EventService {
 
     @Transactional
     public void adminReviewEvent(Integer eventId, String action) {
-        Event event = eventRepo.findById(eventId).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy sự kiện"));
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
 
         EventStatus status = switch (action.toUpperCase()) {
             case "APPROVE" -> EventStatus.APPROVED;
             case "REJECT" -> EventStatus.REJECTED;
-            default -> throw new IllegalArgumentException("Hành động không hợp lệ");
+            default -> throw new BusinessException("INVALID_ACTION", "Hành động không hợp lệ");
         };
 
         event.setStatus(status);
@@ -244,7 +241,7 @@ public class EventService {
     }
 
     private EventDetailDto toDetailDto(Event e, String email) {
-        User currentUser = userRepo.getByEmail(email).orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+        User currentUser = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Không tìm thấy người dùng"));
         boolean isReg = regRepo.existsByUserAndEvent(currentUser, e);
 
         return new EventDetailDto(
