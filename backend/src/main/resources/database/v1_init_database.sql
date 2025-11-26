@@ -17,16 +17,27 @@ create table roles (
 -- ======================
 -- USERS
 -- ======================
-create table users (
-                       user_id int primary key auto_increment,
-                       role_id int not null,
-                       full_name varchar(255) not null,
-                       email varchar(100) unique not null,
-                       phone_number varchar(20) unique,
-                       password varchar(255) not null,
-                       created_at datetime default current_timestamp,
-                       foreign key (role_id) references roles(role_id)
+create table users
+(
+    user_id      int auto_increment
+        primary key,
+    role_id      int                                   not null,
+    full_name    varchar(255)                          not null,
+    email        varchar(100)                          not null,
+    phone_number varchar(20)                           null,
+    password     varchar(255)                          not null,
+    created_at   datetime    default CURRENT_TIMESTAMP null,
+    status       varchar(20) default 'ACTIVE'          not null,
+    constraint email
+        unique (email),
+    constraint phone_number
+        unique (phone_number),
+    constraint users_ibfk_1
+        foreign key (role_id) references roles (role_id)
 );
+
+-- create index role_id
+--     on users (role_id);
 
 -- ======================
 -- CATEGORIES
@@ -149,3 +160,12 @@ create table jwt_token_blacklist (
 -- ======================
 insert into roles (name)
 values ('ROLE_VOLUNTEER'), ('ROLE_MANAGER'), ('ROLE_ADMIN');
+
+insert into users(role_id, full_name, email, password)
+values 
+(1, 'volunteer', 'volunteer@gmail.com', '$2a$10$RwX9.YqSPuwOkvStOEpAUeiD7E04qu1BE5NjwUEplc1Bf0Vme0GbC'),
+(2, 'manager', 'manager@gmail.com', '$2a$10$RwX9.YqSPuwOkvStOEpAUeiD7E04qu1BE5NjwUEplc1Bf0Vme0GbC'),
+(3, 'admin', 'admin@gmail.com', '$2a$10$RwX9.YqSPuwOkvStOEpAUeiD7E04qu1BE5NjwUEplc1Bf0Vme0GbC');
+
+insert into categories (category_name) 
+values ('Quyên góp'), ('Môi trường'), ('Học tập')
