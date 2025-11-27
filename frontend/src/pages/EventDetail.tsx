@@ -5,14 +5,28 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Calendar, MapPin, Users, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, Users, Loader2, Check, Clock } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '@/hooks/useAuth';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+
 
 const EventDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [event, setEvent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -31,8 +45,33 @@ const EventDetail = () => {
     }, [id]);
 
 
-    const handleRegister = () => {
-        toast.success('Tính năng đăng ký sẽ được bổ sung sau!');
+    const handleRegister = async () => {
+        if (!user) {
+            toast.error("Bạn cần đăng nhập trước");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const res = await axios.post(
+                `http://localhost:8080/api/v1/events/${id}/register`
+            );
+
+            toast.success("Đăng ký thành công!");
+            setShowConfirm(false);
+
+            setEvent((prev: any) => ({
+                ...prev,
+                isRegistered: true,
+                registeredCount: prev.registeredCount + 1
+            }));
+
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || "Đăng ký thất bại.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (loading) {
@@ -102,15 +141,52 @@ const EventDetail = () => {
                         </div>
 
                         <div className="pt-6 border-t">
-                            <Button size="lg" onClick={handleRegister}>
-                                Đăng ký tham gia
-                            </Button>
+                            {event.status === "PENDING" ? (<Button size="lg" disabled variant="secondary" className="gap-2">
+                                <Clock className="h-5 w-5" /> Sự kiện chưa được duyệt
+                            </Button>) :
+                                (
+                                    event.isRegistered ? (
+                                        <Button size="lg" disabled variant="secondary" className="gap-2">
+                                            <Check className="h-5 w-5" /> Đã đăng ký
+                                        </Button>
+                                    ) : (
+                                        <Button size="lg" onClick={() => setShowConfirm(true)}>
+                                            Đăng ký tham gia
+                                        </Button>
+                                    )
+                                )}
+
                         </div>
                     </div>
                 </div>
             </main>
 
             <Footer />
+
+            <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận đăng ký</DialogTitle>
+                        <DialogDescription>
+                            Bạn có chắc muốn đăng ký tham gia sự kiện:
+                            <br />
+                            <span className="font-semibold">{event.title}</span>
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowConfirm(false)}>
+                            Hủy
+                        </Button>
+
+                        <Button onClick={handleRegister} disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Xác nhận đăng ký
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 
