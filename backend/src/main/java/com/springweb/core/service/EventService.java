@@ -127,12 +127,22 @@ public class EventService {
     @Transactional
     public void createEvent(EventCreateDto dto, String email) {
         User manager = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
-        if (!manager.getRole().getName().equals("ROLE_MANAGER")) {
-            throw new AccessDeniedException("Chỉ quản lý mới tạo được sự kiện");
-        }
 
         Category category = categoryRepo.findById(dto.categoryId())
                 .orElseThrow(() -> new BusinessException("CATEGORY_NOT_FOUND", "Danh mục không tồn tại"));
+
+        Instant startAt = Instant.parse(dto.startAt());
+        Instant endAt = Instant.parse(dto.endAt());
+
+        if (startAt.isBefore(Instant.now())) {
+            throw new BusinessException("EVENT_START_IN_PAST", "Thời gian bắt đầu sự kiện phải ở trong tương lai");
+        }
+        if (endAt.isBefore(Instant.now())) {
+            throw new BusinessException("EVENT_END_IN_PAST", "Thời gian kết thúc sự kiện phải ở trong tương lai");
+        }
+        if (endAt.isBefore(startAt)) {
+            throw new BusinessException("EVENT_END_BEFORE_START", "Thời gian kết thúc sự kiện phải ở sau thời gian bắt đầu sự kiện");
+        }
 
         Event event = new Event();
         event.setTitle(dto.title());
@@ -142,8 +152,8 @@ public class EventService {
         event.setCity(dto.city());
         event.setDistrict(dto.district());
         event.setWard(dto.ward());
-        event.setStartAt(Instant.parse(dto.startAt()));
-        event.setEndAt(Instant.parse(dto.endAt()));
+        event.setStartAt(startAt);
+        event.setEndAt(endAt);
         event.setCreatedBy(manager);
         event.setStatus(EventStatus.PENDING);
         eventRepo.save(event);
