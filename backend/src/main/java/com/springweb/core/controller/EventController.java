@@ -29,11 +29,21 @@ class EventController {
     @PreAuthorize("hasRole('ROLE_VOLUNTEER')")
     public ResponseEntity<Page<EventDetailDto>> listEvents(
             @AuthenticationPrincipal UserDetails userDetails,
-            @ModelAttribute EventSearchRequestDto eventSearchRequestDto,
-            @Nullable Pageable pageable) {
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) String ward,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "startAt,desc") String sort) {
 
-        Page<EventDetailDto> page = eventService.getEvents(userDetails.getUsername(), eventSearchRequestDto, pageable);
-        return ResponseEntity.ok(page);
+        Page<EventDetailDto> result = eventService.getEvents(
+                userDetails.getUsername(),
+                category, city, district, ward, status,
+                page, size, sort
+        );
+        return ResponseEntity.ok(result);
     }
 
     /** GET: details of an event */

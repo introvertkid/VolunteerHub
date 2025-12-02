@@ -44,20 +44,18 @@ public class EventService {
 
     /* ==================== TÌNH NGUYỆN VIÊN ==================== */
 
-    public Page<EventDetailDto> getEvents(String email, EventSearchRequestDto req, Pageable pageable) {
-        if (pageable == null) {
-            pageable = PageRequest.of(0, 10); // giá trị mặc định
-        }
+    public Page<EventDetailDto> getEvents(String email, String category, String city, String district, String ward, String status, Integer page, Integer size, String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort.split(",")[0]).descending());
 
-        Page<Event> page = eventRepo.findEvents(
-                req.category(),
-                req.city(),
-                req.district(),
-                req.ward(),
-                req.status(),
+        Page<Event> result = eventRepo.findEvents(
+                category,
+                city,
+                district,
+                ward,
+                status,
                 pageable
         );
-        return page.map(event -> toDetailDto(event, email));
+        return result.map(event -> toDetailDto(event, email));
     }
 
     public EventDetailDto getEventDetail(Integer eventId, String email) {
