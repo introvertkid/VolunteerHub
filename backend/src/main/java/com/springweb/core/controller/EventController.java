@@ -100,6 +100,20 @@ class EventController {
         return ResponseEntity.ok(Map.of("message", "Successfully updated event details!"));
     }
 
+    /** PATCH: Mark an event as CANCELLED/COMPLETED (For manager) */
+    @PatchMapping("/{eventId}/close")
+    @PreAuthorize("hasRole('ROLE_MANAGER')")
+    public ResponseEntity<?> updateEventStatus(
+            @PathVariable Integer eventId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, String> body) {
+
+        String action = body.get("action"); // "COMPLETE" or "CANCEL"
+
+        eventService.closeEvent(eventId, action, userDetails.getUsername());
+        return ResponseEntity.ok(Map.of("message", "Cập nhật trạng thái sự kiện thành công"));
+    }
+
     /** DELETE: Delete an event (For manager) */
     @DeleteMapping("/{eventId}")
     @PreAuthorize("hasRole('ROLE_MANAGER')")

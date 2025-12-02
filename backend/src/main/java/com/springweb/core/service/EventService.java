@@ -170,6 +170,42 @@ public class EventService {
     }
 
     @Transactional
+    public void closeEvent(Integer eventId, String action, String email) {
+        User manager = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
+        Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
+
+        if (!event.getCreatedBy().equals(manager)) {
+            throw new AccessDeniedException("Bạn không phải là người tạo sự kiện này");
+        }
+
+        if (action.equalsIgnoreCase("CANCEL")) {
+            if (event.getStatus() != EventStatus.PENDING && event.getStatus() != EventStatus.APPROVED) {
+                throw new BusinessException("INVALID_ACTION", "Bạn không thể hủy sự kiện đã đóng");
+            }
+
+            event.setStatus(EventStatus.CANCELLED);
+            eventRepo.save(event);
+
+            notificationService.send(event.getCreatedBy(), "Sự kiện \"" + event.getTitle() + "\" đã bị hủy");
+        } else if (action.equalsIgnoreCase("COMPLETE")) {
+            if (event.getStatus() != EventStatus.APPROVED) {
+                throw new BusinessException("INVALID_ACTION", "Chỉ có thể đánh dấu hoàn thành cho sự kiện đã được APPROVED");
+            }
+
+            event.setStatus(EventStatus.COMPLETED);
+            eventRepo.save(event);
+
+            regRepo.findByEvent(event).stream()
+                    .filter(reg -> reg.getStatus() == RegistrationStatus.APPROVED)
+                    .forEach(reg -> reg.setStatus(RegistrationStatus.COMPLETED));
+
+            notificationService.send(event.getCreatedBy(), "Sự kiện \"" + event.getTitle() + "\" đã hoàn thành");
+        } else {
+            throw new BusinessException("INVALID_ACTION", "Hành động không hợp lệ");
+        }
+    }
+
+    @Transactional
     public void deleteEvent(Integer eventId, String email) {
         User manager = userRepo.getByEmail(email).orElseThrow(() -> new BusinessException("MANAGER_NOT_FOUND", "Không tìm thấy quản lý sự kiện"));
         Event event = eventRepo.findById(eventId).orElseThrow(() -> new BusinessException("EVENT_NOT_FOUND", "Không tìm thấy sự kiện"));
