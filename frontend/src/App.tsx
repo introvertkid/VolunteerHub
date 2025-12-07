@@ -10,6 +10,7 @@ import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
+import ManagerDashboard from "./pages/ManagerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/manager" element={<ManagerDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
