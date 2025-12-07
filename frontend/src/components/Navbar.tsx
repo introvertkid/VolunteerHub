@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, LogOut } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Heart, LogOut, Settings } from "lucide-react";
+import { useAuth, isManager } from "@/hooks/useAuth";
 
 export const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -28,6 +28,12 @@ export const Navbar = () => {
           <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
             Giới thiệu
           </Link>
+          {isManager(user) && (
+            <Link to="/manager" className="text-foreground/80 hover:text-primary transition-colors flex items-center gap-1">
+              <Settings className="h-4 w-4" />
+              Quản lý
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
