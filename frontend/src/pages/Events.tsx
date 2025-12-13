@@ -1,25 +1,10 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { EventCard, EventCardProps } from '@/components/EventCard';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEvents } from '@/hooks/useEvents';
 
 const Events = () => {
-    const [events, setEvents] = useState<EventCardProps[]>([]);
-    const [page, setPage] = useState(1);
-
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                const res = await axios.get("http://localhost:8080/api/v1/events");
-                setEvents(res.data.content);
-            } catch (err) {
-                console.error("Failed to fetch events:", err);
-            }
-        };
-
-        fetchEvents();
-    }, []);
+    const { events } = useEvents();
 
     return (
         <div className="min-h-screen bg-background">

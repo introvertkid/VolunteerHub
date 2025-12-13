@@ -2,26 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { login, register, logout, getCurrentUser } from "@/api/auth";
 import { useNavigate } from 'react-router-dom';
-
-interface Role {
-  roleId: number;
-  name: string;
-}
-
-interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  role: Role;
-}
-
-export const isManager = (user: User | null): boolean => {
-  return user?.role?.name === 'ROLE_MANAGER' || user?.role?.name === 'ROLE_ADMIN';
-};
-
-export const isAdmin = (user: User | null): boolean => {
-  return user?.role?.name === 'ROLE_ADMIN';
-};
+import { User } from '@/types/user';
 
 interface AuthContextType {
   user: User | null;

@@ -34,17 +34,18 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Users, CheckCircle, XCircle, Loader2, Calendar, MapPin, Eye } from 'lucide-react';
-import { useAuth, isManager } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { getEvents, deleteEvent, closeEvent, getEventRegistrations, approveOrRejectRegistration, EventDetail, EventRegistration } from '@/api/events';
 import EventForm from '@/components/manager/EventForm';
 import EventReport from '@/components/manager/EventReport';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useEvents } from '@/hooks/useEvents';
 
 const ManagerDashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isManager } = useUserRole();
   const navigate = useNavigate();
-  const [events, setEvents] = useState<EventDetail[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventDetail | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -53,36 +54,21 @@ const ManagerDashboard = () => {
   const [loadingRegistrations, setLoadingRegistrations] = useState(false);
   const [selectedEventForRegistrations, setSelectedEventForRegistrations] = useState<EventDetail | null>(null);
   const [isRegistrationsOpen, setIsRegistrationsOpen] = useState(false);
+  const { events, loading, refetch } = useEvents();
 
   useEffect(() => {
-    if (!authLoading && !isManager(user)) {
+    if (!authLoading && !isManager) {
       toast.error('Bạn không có quyền truy cập trang này');
       navigate('/');
     }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const data = await getEvents({ size: 100 });
-      setEvents(data.content || []);
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-      toast.error('Không thể tải danh sách sự kiện');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDeleteEvent = async (eventId: number) => {
     try {
       await deleteEvent(eventId);
       toast.success('Xóa sự kiện thành công!');
-      fetchEvents();
+      refetch();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Xóa sự kiện thất bại');
     }
@@ -92,7 +78,7 @@ const ManagerDashboard = () => {
     try {
       await closeEvent(eventId, action);
       toast.success(`Đã ${action === 'COMPLETE' ? 'hoàn thành' : 'hủy'} sự kiện!`);
-      fetchEvents();
+      refetch();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Cập nhật trạng thái thất bại');
     }
@@ -205,7 +191,7 @@ const ManagerDashboard = () => {
                       <EventForm
                         onSuccess={() => {
                           setIsCreateOpen(false);
-                          fetchEvents();
+                          refetch();
                         }}
                         onCancel={() => setIsCreateOpen(false)}
                       />
@@ -297,7 +283,7 @@ const ManagerDashboard = () => {
                                       onSuccess={() => {
                                         setIsEditOpen(false);
                                         setSelectedEvent(null);
-                                        fetchEvents();
+                                        refetch();
                                       }}
                                       onCancel={() => {
                                         setIsEditOpen(false);

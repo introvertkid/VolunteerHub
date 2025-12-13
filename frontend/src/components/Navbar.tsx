@@ -1,13 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, LogOut, Settings, Menu, X } from "lucide-react";
-import { useAuth, isManager } from "@/hooks/useAuth";
 import { useState } from "react";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Navbar = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isManager } = useUserRole();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -21,7 +23,7 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50">
       {/* Glass effect background */}
       <div className="absolute inset-0 bg-background/70 backdrop-blur-xl border-b border-border/50" />
-      
+
       <div className="container mx-auto px-4 h-16 flex items-center justify-between relative">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
@@ -36,7 +38,7 @@ export const Navbar = () => {
             <span className="text-lg font-bold text-primary">Hub</span>
           </div>
         </Link>
-        
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => (
@@ -44,8 +46,8 @@ export const Navbar = () => {
               key={link.to}
               to={link.to}
               className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all
-                ${isActive(link.to) 
-                  ? "text-primary" 
+                ${isActive(link.to)
+                  ? "text-primary"
                   : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
                 }`}
             >
@@ -55,7 +57,7 @@ export const Navbar = () => {
               )}
             </Link>
           ))}
-          {isManager(user) && (
+          {isManager && (
             <Link
               to="/manager"
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all
@@ -82,8 +84,8 @@ export const Navbar = () => {
                   {user.fullName}
                 </span>
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={signOut}
                 className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
@@ -104,9 +106,9 @@ export const Navbar = () => {
           )}
 
           {/* Mobile menu button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -124,15 +126,15 @@ export const Navbar = () => {
               to={link.to}
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all
-                ${isActive(link.to) 
-                  ? "bg-primary/10 text-primary" 
+                ${isActive(link.to)
+                  ? "bg-primary/10 text-primary"
                   : "text-foreground/70 hover:bg-muted"
                 }`}
             >
               {link.label}
             </Link>
           ))}
-          {isManager(user) && (
+          {isManager && (
             <Link
               to="/manager"
               onClick={() => setMobileMenuOpen(false)}
